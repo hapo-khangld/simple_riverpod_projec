@@ -25,8 +25,25 @@ class MyApp extends StatelessWidget {
   }
 }
 
-final currentDate = Provider<DateTime>(
-  (ref) => DateTime.now(),
+extension OptionalInfixAddition<T extends num> on T? {
+  T? operator +(T? other) {
+    final shadow = this;
+    if (shadow != null) {
+      return shadow + (other ?? 0) as T;
+    } else {
+      return null;
+    }
+  }
+}
+
+class Counter extends StateNotifier<int?> {
+  Counter() : super(null);
+  void increment() => state = state == null ? 1 : state + 1;
+  int? get value => state;
+}
+
+final counterProvider = StateNotifierProvider<Counter, int?>(
+  (ref) => Counter(),
 );
 
 class HomePage extends ConsumerWidget {
@@ -36,16 +53,27 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final date = ref.watch(currentDate);
+    final date = ref.watch(counterProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home page'),
       ),
-      body: Center(
-        child: Text(
-          date.toString(),
-          style: Theme.of(context).textTheme.headline4,
-        ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Text(
+              date.toString(),
+              style: Theme.of(context).textTheme.headline4,
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(counterProvider.notifier).increment();
+            },
+            child: const Text('pick me'),
+          ),
+        ],
       ),
     );
   }
